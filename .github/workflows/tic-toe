@@ -26,3 +26,25 @@ jobs:
          run: npm ci
        - name: test dependencies
          run: npm test
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: build package
+        uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+       - name: installing dependencies
+         run: npm ci
+       - name: test dependencies
+         run: npm test
+       - name: build application
+         run: npm run build
+       - name: upload artifact
+         uses: actions/upload-artifact@v4
+         with:
+           path: dist/
+           
+
