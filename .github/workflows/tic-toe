@@ -3,14 +3,16 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+    -  /kubernetes/deployment.yaml
   pull_request:
     branches: [ "main" ]
 
 jobs:
 
-  build:
+  test:
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v4
