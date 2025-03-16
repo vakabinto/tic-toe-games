@@ -73,4 +73,39 @@ jobs:
           registry: ${{env.REGISTRY}}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
+          tags: |
+            type=sha,format=long
+            type=ref,event=branch
+            latest
+    - name: docker build
+      uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: ${{steps.meta.output.tags}}
+          labels: tags: ${{steps.meta.output.labels}}
+          load: true
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        tags: ${{steps.meta.output.tags}}
+        labels: tags: ${{steps.meta.output.labels}}
+    - name: Set image tag output
+      id: set_output
+      run: echo "image_tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
