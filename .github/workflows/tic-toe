@@ -108,4 +108,30 @@ jobs:
     - name: Set image tag output
       id: set_output
       run: echo "image_tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-
+  update_k8s:
+    - name: update k8s file
+      runs-on: self-hosted
+      needs: [docker_build]
+      env:
+        REGISTRY: ghcr.io
+        IMAGE_NAME: ${{github/repository}}
+        IMAGE_TAG: ${{github.sha}}
+      if: github.ref == 'refs/head/main' && github.event == 'push'
+      steps:
+        - name: update name
+          uses: actions/checkout@v4
+          with:
+            token: ${{secrets.github-token}}
+        - name: update user details
+          run: |
+            git config user.name "vakabinto@gmail.com"
+            git config user.email "vakabinto@gmail.com"
+        - name: update file
+          run: |
+            NEW_IMAGE: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}
+            sed -i "s|image: ${REGISTRY}/.*|image: {$NEW_IMAGE}|g" kubernetes/deployment.yaml
+        - name: commit and push
+          run: |
+            git add kubernetes/deployment.yaml
+            git commit -m "updated file"
+            git push 
