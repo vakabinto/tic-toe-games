@@ -11,42 +11,40 @@ on:
 jobs:
 
   test:
-
     runs-on: self-hosted
-
     steps:
-      - name: checkout code
-        uses: actions/checkout@v4
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-       - name: installing dependencies
-         run: npm ci
-       - name: test dependencies
-         run: npm test
+    - name: checkout code
+      uses: actions/checkout@v4
+    - name: setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - name: installing dependencies
+      run: npm ci
+    - name: test dependencies
+      run: npm test
   build:
     runs-on: self-hosted
     steps:
-      - name: build package
-        uses: actions/checkout@v4
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-       - name: installing dependencies
-         run: npm ci
-       - name: test dependencies
-         run: npm test
-       - name: build application
-         run: npm run build
-       - name: upload artifact
-         uses: actions/upload-artifact@v4
-         with:
-           name: artifact
-           path: dist/
+    - name: build package
+      uses: actions/checkout@v4
+    - name: setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - name: installing dependencies
+      run: npm ci
+    - name: test dependencies
+      run: npm test
+    - name: build application
+      run: npm run build
+    - name: upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact
+        path: dist/
   docker-build:
     runs-on: self-hosted
     needs: [build]
@@ -56,32 +54,32 @@ jobs:
     outputs: 
       IMAGE_TAG: ${{steps.output.set_output.IMAGE_TAG}}
     steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: artifact
-          path: dist/
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to REGISTRY
-        uses: docker/login-action@v3
-        with:
-          registry: ${{env.REGISTRY}}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
-          tags: |
-            type=sha,format=long
-            type=ref,event=branch
-            latest
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: artifact
+        path: dist/
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Login to REGISTRY
+      uses: docker/login-action@v3
+      with:
+        registry: ${{env.REGISTRY}}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
+        tags: |
+          type=sha,format=long
+          type=ref,event=branch
+          latest
     - name: docker build
       uses: docker/build-push-action@v6
         with:
@@ -109,21 +107,21 @@ jobs:
         IMAGE_TAG: ${{github.sha}}
       if: github.ref == 'refs/head/main' && github.event == 'push'
       steps:
-        - name: update name
-          uses: actions/checkout@v4
-          with:
-            token: ${{secrets.github-token}}
-        - name: update user details
-          run: |
-            git config user.name "vakabinto"
-            git config user.email "vakabinto@gmail.com"
-        - name: update file
-          run: |
-            NEW_IMAGE: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}
-            sed -i "s|image: ${REGISTRY}/.*|image: {$NEW_IMAGE}|g" kubernetes/deployment.yaml
-        - name: commit and push
-          run: |
-            git add kubernetes/deployment.yaml
-            git commit -m "updated file"
-            git push 
+      - name: update name
+        uses: actions/checkout@v4
+        with:
+          token: ${{secrets.github-token}}
+      - name: update user details
+        run: |
+          git config user.name "vakabinto"
+          git config user.email "vakabinto@gmail.com"
+      - name: update file
+        run: |
+          NEW_IMAGE: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}
+          sed -i "s|image: ${REGISTRY}/.*|image: {$NEW_IMAGE}|g" kubernetes/deployment.yaml
+      - name: commit and push
+        run: |
+          git add kubernetes/deployment.yaml
+          git commit -m "updated file"
+          git push 
 ##
