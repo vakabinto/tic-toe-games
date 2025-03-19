@@ -115,7 +115,7 @@ jobs:
             token: ${{secrets.github-token}}
         - name: update user details
           run: |
-            git config user.name "vakabinto@gmail.com"
+            git config user.name "vakabinto"
             git config user.email "vakabinto@gmail.com"
         - name: update file
           run: |
@@ -126,4 +126,3 @@ jobs:
             git add kubernetes/deployment.yaml
             git commit -m "updated file"
             git push 
-#update
