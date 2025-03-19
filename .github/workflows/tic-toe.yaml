@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths-ignore:
-    -  /kubernetes/deployment.yaml
+      - kubernetes/deployment.yaml
   pull_request:
     branches: [ "main" ]
 
@@ -13,115 +13,114 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
-    - name: checkout code
-      uses: actions/checkout@v4
-    - name: setup node
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-    - name: installing dependencies
-      run: npm ci
-    - name: test dependencies
-      run: npm test
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+
   build:
     runs-on: self-hosted
     steps:
-    - name: build package
-      uses: actions/checkout@v4
-    - name: setup node
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-    - name: installing dependencies
-      run: npm ci
-    - name: test dependencies
-      run: npm test
-    - name: build application
-      run: npm run build
-    - name: upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: artifact
-        path: dist/
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build application
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: dist/
+
   docker-build:
     runs-on: self-hosted
     needs: [build]
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{github.repository}}
+      IMAGE_NAME: ${{ github.repository }}
     outputs: 
-      IMAGE_TAG: ${{steps.output.set_output.IMAGE_TAG}}
+      IMAGE_TAG: ${{ steps.set_output.outputs.IMAGE_TAG }}
     steps:
-    - name: checkout
-      uses: actions/checkout@v4
-    - name: download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: artifact
-        path: dist/
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Login to REGISTRY
-      uses: docker/login-action@v3
-      with:
-        registry: ${{env.REGISTRY}}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Docker meta
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
-        tags: |
-          type=sha,format=long
-          type=ref,event=branch
-          latest
-    - name: docker build
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        push: false
-        tags: ${{steps.meta.output.tags}}
-          labels: tags: ${{steps.meta.output.labels}}
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact
+          path: dist/
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to REGISTRY
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=ref,event=branch
+            latest
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           load: true
-    - name: Build and push
-      uses: docker/build-push-action@v6
-      with:
-        push: true
-        tags: ${{steps.meta.output.tags}}
-        labels: tags: ${{steps.meta.output.labels}}
-    - name: Set image tag output
-      id: set_output
-      run: echo "image_tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Set image tag output
+        id: set_output
+        run: echo "IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
   update_k8s:
-    - name: update k8s file
-      runs-on: self-hosted
-      needs: [docker_build]
-      env:
-        REGISTRY: ghcr.io
-        IMAGE_NAME: ${{github/repository}}
-        IMAGE_TAG: ${{github.sha}}
-      if: github.ref == 'refs/head/main' && github.event == 'push'
-      steps:
-      - name: update name
+    runs-on: self-hosted
+    needs: [docker-build]
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+      IMAGE_TAG: ${{ github.sha }}
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{secrets.github-token}}
-      - name: update user details
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set Git user
         run: |
           git config user.name "vakabinto"
           git config user.email "vakabinto@gmail.com"
-      - name: update file
+      - name: Update Kubernetes deployment file
         run: |
-          NEW_IMAGE: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}
-          sed -i "s|image: ${REGISTRY}/.*|image: {$NEW_IMAGE}|g" kubernetes/deployment.yaml
-      - name: commit and push
+          NEW_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+          sed -i "s|image: ${REGISTRY}/.*|image: ${NEW_IMAGE}|g" kubernetes/deployment.yaml
+      - name: Commit and push changes
         run: |
           git add kubernetes/deployment.yaml
-          git commit -m "updated file"
-          git push 
-##
+          git commit -m "Updated Kubernetes deployment with new image tag: ${{ env.IMAGE_TAG }}"
+          git push
