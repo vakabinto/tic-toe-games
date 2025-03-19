@@ -82,10 +82,10 @@ jobs:
           latest
     - name: docker build
       uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: ${{steps.meta.output.tags}}
+      with:
+        context: .
+        push: false
+        tags: ${{steps.meta.output.tags}}
           labels: tags: ${{steps.meta.output.labels}}
           load: true
     - name: Build and push
