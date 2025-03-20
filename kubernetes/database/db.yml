@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-db
+  labels:
+    app: mysql
+spec:
+  replicas: 1
+  selectors:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:latest
+          env:
+          - name: MYSQL_DATABASE
+            value: tic-toe-db
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                 name: mysql-secret
+                  key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: password
+         ports:
+           - name: mysql_port
+             port: 3306
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: mysql-mount
+    volumes: 
+      - name: mysql-mount
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+
+
+
