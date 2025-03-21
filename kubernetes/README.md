@@ -79,4 +79,5 @@ View logs:
 
 ```bash
 kubectl logs -l app=tic-tac-toe
+##
 ```
