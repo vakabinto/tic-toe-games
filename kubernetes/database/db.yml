@@ -6,7 +6,7 @@ metadata:
     app: mysql
 spec:
   replicas: 1
-  selectors:
+  selector:
     matchLabels:
       app: mysql
   template:
@@ -23,19 +23,19 @@ spec:
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:
-                 name: mysql-secret
-                  key: username
+                name: mysql-secret
+                key: username
           - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: mysql-secret
                 key: password
-         ports:
+          ports:
            - name: mysql_port
-             port: 3306
-        volumeMounts:
-          - mountPath: /var/lib/mysql
-            name: mysql-mount
+             containerPort: 3306
+          volumeMounts:
+           - mountPath: /var/lib/mysql
+             name: mysql-mount
     volumes: 
       - name: mysql-mount
         persistentVolumeClaim:
