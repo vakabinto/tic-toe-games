@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: tic-tac-toe
-        image: ghcr.io/vakabinto/tic-toe-games:af376f748185d5a3d298fc7a5073a6a7f9ce1afe
+        image: ghcr.io/vakabinto/tic-toe-games:592fa481d0d7d60ae221be1a5871f877d6de02b7
         # Image will be automatically updated by CI/CD pipeline
         imagePullPolicy: Always
         ports:
