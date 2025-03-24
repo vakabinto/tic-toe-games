@@ -45,4 +45,4 @@ volumeClaimTemplates:
       resources:
         requests:
           storage: 10Gi
-      storageClassName: standard
+      storageClassName: manual
