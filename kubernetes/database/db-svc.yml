@@ -4,6 +4,7 @@ metadata:
   name: mysql-svc
   labels:
     app: mysql
+    app.kubernetes.io/instance: mysql
 spec:
   selector:
     app: mysql
