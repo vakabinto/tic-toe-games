@@ -4,6 +4,7 @@ metadata:
   name: mysql-pv
   labels:
     app: mysql
+    app.kubernetes.io/instance: mysql
 spec:
   capacity:
     storage: 10Gi
