@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: mysql
+        app.kubernetes.io/instance: db
     spec:
       containers:
         - name: mysql
