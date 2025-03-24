@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: mysql-svc
   labels:
-    app.kubernetes.io/instance: db
+    app: mysql
 spec:
   selector:
     app: mysql
