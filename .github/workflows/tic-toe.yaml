@@ -104,7 +104,7 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
-      IMAGE_TAG: ${{ github.sha }}
+      IMAGE_TAG: sha-${{ github.sha }}
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout code
