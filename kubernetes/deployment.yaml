@@ -21,6 +21,23 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 80
+        env:
+          - name: DB_HOST
+            value: "mysql-svc"
+          - name: DB_NAME
+            value: "tic-toe-db"
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: password
         resources:
           limits:
             cpu: "0.5"
