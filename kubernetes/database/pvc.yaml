@@ -4,6 +4,7 @@ metadata:
   name: mysql-pvc
   labels:
     app: mysql
+    app.kubernetes.io/instance: mysql
 spec:
   accessModes:
     - ReadWriteOnce
