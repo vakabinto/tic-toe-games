@@ -4,7 +4,6 @@ metadata:
   name: mysql-db
   labels:
     app: mysql
-    app.kubernetes.io/instance: db
 spec:
   replicas: 1
   selector:
